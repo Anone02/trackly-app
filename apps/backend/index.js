@@ -1,1 +1,0 @@
-console.log("Trackly Backend is running...");

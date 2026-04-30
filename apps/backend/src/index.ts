@@ -9,7 +9,13 @@ const fastify = Fastify({ logger: true });
 const prisma = new PrismaClient();
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecret';
 
-fastify.register(cors, { origin: true });
+fastify.register(cors, { 
+  origin: [
+    'https://trackly-app-frontend.vercel.app', // Link Production
+    'http://localhost:3000',                  // Link Lokal (sesuaikan portnya)
+    'http://127.0.0.1:3000'                   // Kadang perlu ini juga
+  ] 
+});
 
 const authenticate = async (request: any, reply: any) => {
   try {
