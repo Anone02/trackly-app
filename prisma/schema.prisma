@@ -1,0 +1,41 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           Int              @id @default(autoincrement())
+  username     String           @unique
+  password     String
+  telegramId   String?          @unique
+  role         String           @default("USER")
+  createdAt    DateTime         @default(now())
+
+  // Relasi Balik (Wajib ada biar gak error P1012)
+  applications JobApplication[]     
+}
+
+model JobApplication {
+  id                Int       @id @default(autoincrement())
+  companyName       String
+  jobTitle          String
+  location          String?
+  jobType           String?
+  applicationStatus String    @default("Applied")
+  sourceLink        String?
+  contactPerson     String?
+  followUpDate      DateTime?
+  salary            String?
+  notes             String?   @db.Text
+  applicationDate   DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relasi ke User
+  userId            Int
+  user              User      @relation(fields: [userId], references: [id])
+}

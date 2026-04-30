@@ -1,0 +1,28 @@
+{
+  "name": "bot",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node main.ts",
+    "postinstall": "prisma generate --schema=../../prisma/schema.prisma",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "dotenv": "^17.4.2",
+    "json2csv": "^6.0.0-alpha.2",
+    "node-telegram-bot-api": "^0.67.0",
+    "prisma": "^6.19.3"
+  },
+  "devDependencies": {
+    "@types/json2csv": "^5.0.7",
+    "@types/node-telegram-bot-api": "^0.64.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
