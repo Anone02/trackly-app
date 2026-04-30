@@ -76,16 +76,16 @@ export default function DashboardContent({ initialStats }: any) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex transition-colors duration-500 font-sans selection:bg-blue-500">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col md:flex-row font-sans selection:bg-blue-500">
       
       {/* SIDEBAR */}
-      <aside className="w-64 border-r border-white/5 p-6 flex flex-col justify-between hidden md:flex bg-[var(--background)]">
-        <div>
-          <div className="mb-10 px-2 flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black italic">T</div>
-            <h1 className="text-xl font-black tracking-tighter uppercase italic">TRACKLY<span className="text-blue-500">.</span></h1>
+      <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 p-6 flex md:flex-col justify-between bg-[var(--background)] overflow-x-auto">
+        <div className="flex md:flex-col gap-6 md:gap-0">
+          <div className="mb-0 md:mb-10 px-2 flex items-center gap-2">
+            <div className="w-8 h-8 flex-shrink-0 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black italic">T</div>
+            <h1 className="text-xl font-black tracking-tighter uppercase italic hidden md:block">TRACKLY<span className="text-blue-500">.</span></h1>
           </div>
-          <nav className="space-y-2">
+          <nav className="flex md:flex-col gap-2 space-y-0 md:space-y-2">
             {[
               { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
               { id: 'applications', icon: Briefcase, label: 'Applications' },
@@ -94,15 +94,15 @@ export default function DashboardContent({ initialStats }: any) {
               <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 p-4 rounded-2xl font-bold text-sm transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'opacity-40 hover:opacity-100 hover:bg-white/5'}`}
+                className={`flex-shrink-0 flex items-center gap-3 p-4 rounded-2xl font-bold text-sm transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'opacity-40 hover:opacity-100 hover:bg-white/5'}`}
               >
-                <tab.icon size={18} /> {tab.label}
+                <tab.icon size={18} /> <span className="hidden md:inline">{tab.label}</span>
               </button>
             ))}
           </nav>
         </div>
         
-        <div className="space-y-4">
+        <div className="hidden md:flex flex-col space-y-4">
           <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
             <span className="text-[10px] font-black uppercase opacity-40">Theme</span>
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
