@@ -23,6 +23,7 @@ export default function DashboardContent({ initialStats }: any) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [state, formAction, isPending] = useActionState(addApplication, null);
 
@@ -76,16 +77,49 @@ export default function DashboardContent({ initialStats }: any) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col md:flex-row font-sans selection:bg-blue-500">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex font-sans selection:bg-blue-500 overflow-x-hidden">
       
-      {/* SIDEBAR */}
-      <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 p-6 flex md:flex-col justify-between bg-[var(--background)] overflow-x-auto">
-        <div className="flex md:flex-col gap-6 md:gap-0">
-          <div className="mb-0 md:mb-10 px-2 flex items-center gap-2">
-            <div className="w-8 h-8 flex-shrink-0 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black italic">T</div>
-            <h1 className="text-xl font-black tracking-tighter uppercase italic hidden md:block">TRACKLY<span className="text-blue-500">.</span></h1>
+      {/* MOBILE HAMBURGER BUTTON - Muncul cuma di HP */}
+      <button 
+        onClick={() => setIsSidebarOpen(true)}
+        className="fixed top-4 left-4 z-[60] md:hidden p-3 bg-blue-600 text-white rounded-xl shadow-lg"
+      >
+        <LayoutDashboard size={20} />
+      </button>
+
+      {/* OVERLAY - Layar gelap pas menu buka di HP */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] md:hidden"
+          />
+        )}
+      </AnimatePresence>
+      
+      {/* SIDEBAR (MODERN DRAWER) */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-[80] w-72 bg-[var(--background)] border-r border-white/5 p-6 
+        flex flex-col justify-between transition-transform duration-300 ease-in-out
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+        md:relative md:translate-x-0 md:flex md:w-64
+      `}>
+        <div>
+          <div className="mb-10 px-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black italic">T</div>
+              <h1 className="text-xl font-black tracking-tighter uppercase italic">TRACKLY<span className="text-blue-500">.</span></h1>
+            </div>
+            {/* Tombol Close - Cuma di HP */}
+            <button onClick={() => setIsSidebarOpen(false)} className="md:hidden opacity-50">
+              <X size={20} />
+            </button>
           </div>
-          <nav className="flex md:flex-col gap-2 space-y-0 md:space-y-2">
+
+          <nav className="space-y-2">
             {[
               { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
               { id: 'applications', icon: Briefcase, label: 'Applications' },
@@ -93,16 +127,19 @@ export default function DashboardContent({ initialStats }: any) {
             ].map((tab) => (
               <button 
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-shrink-0 flex items-center gap-3 p-4 rounded-2xl font-bold text-sm transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'opacity-40 hover:opacity-100 hover:bg-white/5'}`}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setIsSidebarOpen(false); // Otomatis tutup menu setelah pilih
+                }}
+                className={`w-full flex items-center gap-3 p-4 rounded-2xl font-bold text-sm transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'opacity-40 hover:opacity-100 hover:bg-white/5'}`}
               >
-                <tab.icon size={18} /> <span className="hidden md:inline">{tab.label}</span>
+                <tab.icon size={18} /> {tab.label}
               </button>
             ))}
           </nav>
         </div>
         
-        <div className="hidden md:flex flex-col space-y-4">
+        <div className="space-y-4">
           <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
             <span className="text-[10px] font-black uppercase opacity-40">Theme</span>
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
