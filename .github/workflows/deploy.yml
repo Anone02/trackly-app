@@ -4,16 +4,20 @@ on:
   push:
     branches: [main]
 
+# Pakai env variable ini buat maksa pake Node 24 sesuai saran GitHub
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24" # Update ke 24 biar aman sampai akhir 2026
           cache: "npm"
 
       - name: Install Dependencies
@@ -24,8 +28,9 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Type Check
-        run: npm run build # Ini bakal nge-test build & TS check sekaligus
+      - name: Type Check & Build
+        run: npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
