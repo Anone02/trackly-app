@@ -42,9 +42,21 @@ export async function registerUser(prevState: any, formData: FormData) {
     });
 
     return { success: true };
-  } catch (e) {
+  } catch (e: any) {
     console.error("Register Error:", e);
-    return { error: "Gagal daftar. Cek database Docker lo!" };
+    
+    // 1. Cek kalau error-nya dari Prisma (masalah database)
+    if (e.code) {
+      return { error: `Database Error (${e.code}): ${e.message}` };
+    }
+
+    // 2. Cek kalau error-nya karena masalah koneksi/network
+    if (e.message && e.message.includes("fetch")) {
+      return { error: "Gagal konek ke database. Cek DATABASE_URL di Vercel!" };
+    }
+
+    // 3. Error lainnya
+    return { error: `Sistem Error: ${e.message || "Terjadi kesalahan tidak dikenal"}` };
   }
 }
 
