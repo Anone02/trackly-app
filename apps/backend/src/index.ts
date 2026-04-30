@@ -50,43 +50,6 @@ fastify.post('/login', async (request, reply) => {
   return { token };
 });
 
-// --- TRACKS ---
-fastify.post('/tracks', { preHandler: [authenticate] }, async (request: any, reply) => {
-  const { title, value } = (request.body || {}) as any;
-  try {
-    const newTrack = await prisma.track.create({
-      data: { title, value: parseFloat(value), userId: request.user.userId }
-    });
-    return reply.status(201).send(newTrack);
-  } catch (error) {
-    return reply.status(500).send({ error: "Gagal simpan" });
-  }
-});
-
-fastify.get('/tracks', { preHandler: [authenticate] }, async (request: any) => {
-  return await prisma.track.findMany({
-    where: { userId: request.user.userId },
-    orderBy: { createdAt: 'desc' }
-  });
-});
-
-fastify.get('/tracks/stats', { preHandler: [authenticate] }, async (request: any) => {
-  const tracks = await prisma.track.findMany({
-    where: { userId: request.user.userId }
-  });
-  
-  // FIX ERROR sum & t: any
-  const totalValue = tracks.reduce((sum: number, t: any) => sum + t.value, 0);
-  const avgValue = tracks.length > 0 ? totalValue / tracks.length : 0;
-  
-  return {
-    count: tracks.length,
-    total: totalValue,
-    average: avgValue.toFixed(2),
-    latest: tracks[0] || null
-  };
-});
-
 const start = async () => {
   try {
     await fastify.listen({ port: 4000, host: '0.0.0.0' });
