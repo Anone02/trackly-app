@@ -63,43 +63,62 @@ export async function registerUser(prevState: any, formData: FormData) {
 /**
  * ACTION: LOGIN USER
  */
+/**
+ * ACTION: LOGIN USER
+ */
 export async function loginUser(prevState: any, formData: FormData) {
   const username = formData.get("username") as string;
   const password = formData.get("password") as string;
 
-  if (!username || !password) return { error: "Isi dulu username ama passwordnya!" };
+  // 1. Validasi Input
+  if (!username || !password) {
+    return { error: "Isi dulu username ama passwordnya!" };
+  }
 
   let isSuccess = false;
+
   try {
+    // 2. Cek User di Database
     const user = await prisma.user.findUnique({ where: { username } });
-    if (!user) return { error: "Username nggak ketemu!" };
+    if (!user) {
+      return { error: "Username nggak ketemu!" };
+    }
 
+    // 3. Verifikasi Password
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) return { error: "Password lo salah!" };
+    if (!isPasswordValid) {
+      return { error: "Password lo salah!" };
+    }
 
-    // 1. BIKIN TOKEN
+    // 4. Bikin Token JWT
     const token = jwt.sign(
       { userId: user.id }, 
       process.env.JWT_SECRET!, 
       { expiresIn: "7d" }
     );
 
-    // 2. SET COOKIE PAKE TOKEN (Bukan ID mentah)
+    // 5. Set Cookie
     const cookieStore = await cookies();
-    cookieStore.set("user_session", token, { // TADI LO SALAH DI SINI
+    cookieStore.set("user_session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
     });
+
     isSuccess = true;
-  } catch (e) {
+  } catch (e: any) {
     console.error("Login Error:", e);
-    return { error: "Terjadi kesalahan sistem saat login." };
+    // Return error asli biar lo tau kalau ada masalah database/koneksi
+    return { error: e.message || "Terjadi kesalahan sistem saat login." };
   }
 
-  if (isSuccess) redirect("/dashboard");
+  // 6. REDIRECT WAJIB DI LUAR TRY-CATCH
+  // Ini biar Next.js gak ngira proses pindah halaman sebagai 'error'
+  if (isSuccess) {
+    redirect("/dashboard");
+  }
 }
 
 /**

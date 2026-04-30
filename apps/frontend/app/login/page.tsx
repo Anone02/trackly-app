@@ -1,52 +1,30 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useActionState } from 'react'; // Tambah useActionState
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Lock, UserCircle, ArrowLeft, Sun, Moon, Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // Tambahan buat pindah page
+// Hapus useRouter karena redirect sudah ditangani otomatis oleh Server Action
 import { loginUser } from '@/app/actions';
 
 export default function LoginPage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter(); // Inisialisasi router
   
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  // MENGGUNAKAN useActionState:
+  // state: nangkep return error dari loginUser
+  // formAction: fungsi yang ditaruh di properti 'action' form
+  // isPending: otomatis jadi true saat proses server jalan (pengganti isLoading)
+  const [state, formAction, isPending] = useActionState(loginUser, null);
 
   useEffect(() => setMounted(true), []);
   
   if (!mounted) return null;
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    const formData = new FormData(event.currentTarget);
-    
-    try {
-      // Panggil server action
-      const result = await loginUser(null, formData);
-
-      if (result?.error) {
-        setError(result.error);
-        setIsLoading(false);
-      } else {
-        // Jika sukses, kita paksa pindah halaman dari sisi client
-        // Ini solusi paling ampuh buat ngatasi 'stuck' di handleSubmit manual
-        router.push("/dashboard");
-        router.refresh(); 
-      }
-    } catch (e) {
-      console.error("Login Client Error:", e);
-      setError("Terjadi kesalahan koneksi.");
-      setIsLoading(false);
-    }
-  }
+  // Fungsi handleSubmit manual dihapus karena logic sudah pindah ke formAction
+  // Ini kunci agar tidak muncul pesan error "kesalahan koneksi" saat redirect sukses
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-6 transition-colors duration-500 bg-[var(--background)] font-sans selection:bg-[var(--primary)]/30">
@@ -63,6 +41,7 @@ export default function LoginPage() {
 
       {/* THEME TOGGLE */}
       <button
+        type="button"
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         className="absolute top-8 right-8 p-3 rounded-2xl z-50 transition-all active:scale-95 border-2
                    bg-[var(--background)] border-[var(--input-bg)] text-[var(--foreground)] shadow-sm"
@@ -99,11 +78,13 @@ export default function LoginPage() {
           </p>
         </header>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        {/* MENGGUNAKAN formAction */}
+        <form className="space-y-6" action={formAction}>
           
-          {error && (
+          {/* Menampilkan error dari state useActionState */}
+          {state?.error && (
             <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-[11px] font-bold text-center uppercase tracking-widest">
-              {error}
+              {state.error}
             </div>
           )}
 
@@ -154,12 +135,12 @@ export default function LoginPage() {
 
           <button 
             type="submit" 
-            disabled={isLoading}
+            disabled={isPending}
             className="w-full p-6 mt-4 text-[11px] font-black tracking-[0.4em] uppercase rounded-full shadow-lg transition-all
                        bg-[var(--foreground)] text-[var(--background)] hover:scale-[1.02] active:scale-[0.98]
                        flex items-center justify-center disabled:opacity-50"
           >
-            {isLoading ? <Loader2 className="animate-spin" size={18} /> : "SIGN IN"}
+            {isPending ? <Loader2 className="animate-spin" size={18} /> : "SIGN IN"}
           </button>
         </form>
 
