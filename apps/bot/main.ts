@@ -19,6 +19,13 @@ const bot = new TelegramBot(token, { polling: true });
 console.log("🚀 Bot berhasil jalan pakai token dari root .env");
 //const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN!, { polling: true });
 
+// Fungsi untuk memvalidasi apakah Telegram ID sudah ada di database User
+const checkUser = async (chatId: number) => {
+  return await prisma.user.findFirst({ 
+    where: { telegramId: chatId.toString() } 
+  });
+};
+
 // State user untuk menangani flow input dan update
 const userState: { 
   [key: string]: { 
@@ -63,6 +70,17 @@ bot.on('callback_query', async (query) => {
   const chatId = query.message!.chat.id;
   const messageId = query.message!.message_id;
   const data = query.data!;
+
+  // PENGECEKAN DIMULAI DI SINI
+  // Menu yang BOLEH diakses tanpa tertaut hanya menu_id, menu_readme, menu_restart, dan back
+  const isPublicMenu = ["menu_id", "menu_readme", "menu_restart", "back_to_main"].includes(data);
+
+  if (!isPublicMenu) {
+    const user = await checkUser(chatId);
+    if (!user) {
+      return bot.sendMessage(chatId, "⚠️ *AKSES DITOLAK!*\n\nID Telegram lo belum tertaut ke akun web Trackly. Silakan copy ID lo di menu 'Generate ID' dan tempel di Dashboard Web (Settings) dulu ya!", { parse_mode: 'Markdown' });
+    }
+  }
 
   if (data === "menu_restart") {
     try {
@@ -255,6 +273,12 @@ bot.on('message', async (msg) => {
 
   if (!text || text.startsWith('/')) return;
   if (!state) return;
+
+  const user = await checkUser(chatId);
+  if (!user) {
+    delete userState[chatId]; // Bersihkan state biar gak stuck
+    return bot.sendMessage(chatId, "❌ Akun belum tertaut. Input dibatalkan.");
+  }
 
   // --- LOGIC UPDATE VALUE ---
   if (state.menu === 'UPDATE_VAL') {
